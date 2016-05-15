@@ -7,39 +7,68 @@
             integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo=" crossorigin="anonymous"></script>
     <meta http-equiv="Content-Type"
           content="text/html charset=UTF-8"/>
-<style>
-    #asciiResult {
-        font-family: FreeMono;
-        font-size: smaller;
-    }
-</style>
+    <style>
+        #asciiResult {
+            font-family: FreeMono;
+            font-size: smaller;
+        }
+    </style>
 </head>
 <body>
-<form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+<form id="imageSearchForm" action="/imageSearch">
+    <input id="imageSearchCriteria" name="imageSearchCriteria" type="text">
+    <input id="imageSearchButton" type="submit" value="Search"/>
+
+</form>
+<div id="imageSearchResults"></div>
+
+<form id="uploadForm">
     <input id="fileSelect" type="file" name="upload"/>
     <input id="uploadButton" type="submit" value="Upload"/>
 </form>
 
 <br/>
 <br/>
-<div id = "asciiResult">Results will be displayed here...</div>
+<div id="asciiResult">Results will be displayed here...</div>
 
 
 </body>
 <script>
     var uploadForm = $('#uploadForm')[0];
     var fileSelect = $('#fileSelect')[0];
-    var uploadButton = $('#uploadButton')[0];
 
     uploadForm.onsubmit = function (event) {
         event.preventDefault();
-        uploadFile(fileSelect.files[0]).then(function(resp){
+        uploadFile(fileSelect.files[0]).then(function (resp) {
             $('#asciiResult').html(resp);
-        }, function(resp){alert('problem: ' + resp.message);});
+        }, function (resp) {
+            alert('problem: ' + resp.message);
+        });
     };
 
+    var imageSearchForm = $('#imageSearchForm')[0];
 
-    function uploadFile(file){
+    imageSearchForm.onsubmit = function (event) {
+        event.preventDefault();
+        $('#imageSearchResults').empty();
+        searchImage($('#imageSearchCriteria').val()).then(function (resp) {
+            $.each(resp, function(i, image){
+//                console.log(image.thumb);
+                $('#imageSearchResults').append('<img src=' + image.thumb + '/>' + '&nbsp;');
+            });
+//            $('#imageSearchResults').html(JSON.stringify(resp));
+        });
+    };
+
+    function searchImage(criteria) {
+        return $.ajax({
+            url: '/imageSearch',
+            type: 'GET',
+            data: {criteria: criteria}
+        }).promise();
+    }
+
+    function uploadFile(file) {
         var formData = new FormData();
         formData.append('upload', file);
         return $.ajax({
@@ -49,7 +78,6 @@
             contentType: false,
             processData: false
         }).promise();
-
     }
 
 </script>

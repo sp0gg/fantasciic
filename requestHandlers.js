@@ -2,6 +2,15 @@ var querystring = require("querystring"),
   fs = require("fs"),
   formidable = require("formidable");
 const imageToAscii = require("image-to-ascii");
+
+var Scraper = require ('images-scraper')
+  , bing = new Scraper.Bing();
+
+function sleep(milliSeconds) {
+  var startTime = new Date().getTime();
+  while (new Date().getTime() < startTime + milliSeconds);
+}
+
 function start(response) {
   console.log("Request handler 'start' was called.");
   response.writeHead(200, {"Content-Type": "text/html"});
@@ -21,10 +30,8 @@ function upload(response, request) {
         fs.rename(files.upload.path, "/tmp/test.png");
       }
     });
-    function sleep(milliSeconds) {
-      var startTime = new Date().getTime();
-      while (new Date().getTime() < startTime + milliSeconds);
-    }
+
+
 
     sleep(1000);
 
@@ -38,10 +45,32 @@ function upload(response, request) {
     });
   });
 }
+
+function imageSearch(response, request){
+  var query = request.url.split('?')[1];
+  var criteria = querystring.parse(query).criteria;
+  console.log("Request handler 'imageSearch' was called with criteria " + criteria);
+
+  bing.list({
+    keyword: criteria,
+    num: 10,
+    detail: true
+  }).then(function(res){
+    response.writeHead(200, {"Content-Type": "application/json"});
+    console.log('results', res);
+    response.write(JSON.stringify(res));
+    response.end();
+  });
+
+
+}
+
 function show(response) {
   console.log("Request handler 'show' was called.");
   response.writeHead(200, {"Content-Type": "image/png"});
 }
+
 exports.start = start;
 exports.upload = upload;
 exports.show = show;
+exports.imageSearch = imageSearch;
