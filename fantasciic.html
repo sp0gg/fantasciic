@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fantasciic</title>
+    <script src="http://code.jquery.com/jquery-2.2.3.min.js"
+            integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo=" crossorigin="anonymous"></script>
+    <meta http-equiv="Content-Type"
+          content="text/html charset=UTF-8"/>
+<style>
+    #asciiResult {
+        font-family: FreeMono;
+        font-size: smaller;
+    }
+</style>
+</head>
+<body>
+<form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+    <input id="fileSelect" type="file" name="upload"/>
+    <input id="uploadButton" type="submit" value="Upload"/>
+</form>
+
+<br/>
+<br/>
+<div id = "asciiResult">Results will be displayed here...</div>
+
+
+</body>
+<script>
+    var uploadForm = $('#uploadForm')[0];
+    var fileSelect = $('#fileSelect')[0];
+    var uploadButton = $('#uploadButton')[0];
+
+    uploadForm.onsubmit = function (event) {
+        event.preventDefault();
+        uploadFile(fileSelect.files[0]).then(function(resp){
+            $('#asciiResult').html(resp);
+        }, function(resp){alert('problem: ' + resp.message);});
+    };
+
+
+    function uploadFile(file){
+        var formData = new FormData();
+        formData.append('upload', file);
+        return $.ajax({
+            url: '/upload',
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false
+        }).promise();
+
+    }
+
+</script>
+</html>
