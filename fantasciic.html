@@ -10,7 +10,10 @@
     <style>
         #asciiResult {
             font-family: FreeMono;
-            font-size: smaller;
+            font-size: small;
+            color: greenyellow;
+            background-color: black;
+            text-wrap: none;
         }
     </style>
 </head>
@@ -18,34 +21,15 @@
 <form id="imageSearchForm" action="/imageSearch">
     <input id="imageSearchCriteria" name="imageSearchCriteria" type="text">
     <input id="imageSearchButton" type="submit" value="Search"/>
-
 </form>
 <div id="imageSearchResults"></div>
 
-<form id="uploadForm">
-    <input id="fileSelect" type="file" name="upload"/>
-    <input id="uploadButton" type="submit" value="Upload"/>
-</form>
-
 <br/>
 <br/>
-<div id="asciiResult">Results will be displayed here...</div>
-
+<div id="asciiResult"></div>
 
 </body>
 <script>
-    var uploadForm = $('#uploadForm')[0];
-    var fileSelect = $('#fileSelect')[0];
-
-    uploadForm.onsubmit = function (event) {
-        event.preventDefault();
-        uploadFile(fileSelect.files[0]).then(function (resp) {
-            $('#asciiResult').html(resp);
-        }, function (resp) {
-            alert('problem: ' + resp.message);
-        });
-    };
-
     var imageSearchForm = $('#imageSearchForm')[0];
 
     imageSearchForm.onsubmit = function (event) {
@@ -53,12 +37,17 @@
         $('#imageSearchResults').empty();
         searchImage($('#imageSearchCriteria').val()).then(function (resp) {
             $.each(resp, function(i, image){
-//                console.log(image.thumb);
-                $('#imageSearchResults').append('<img src=' + image.thumb + '/>' + '&nbsp;');
+                $('#imageSearchResults').append('<a onclick=submitAsciify(\'' + image.url + '\')>' + '<img src=' + image.thumb + '/></a> &nbsp;');
             });
-//            $('#imageSearchResults').html(JSON.stringify(resp));
         });
     };
+
+    function submitAsciify(image) {
+        $('#asciiResult').text("ASCIIFYING.....");
+        asciify(image).then(function(resp) {
+            $('#asciiResult').text(resp);
+        });
+    }
 
     function searchImage(criteria) {
         return $.ajax({
@@ -68,15 +57,11 @@
         }).promise();
     }
 
-    function uploadFile(file) {
-        var formData = new FormData();
-        formData.append('upload', file);
+    function asciify(image) {
         return $.ajax({
-            url: '/upload',
-            type: 'POST',
-            data: formData,
-            contentType: false,
-            processData: false
+            url: '/asciify',
+            type: 'GET',
+            data: {image: image}
         }).promise();
     }
 
